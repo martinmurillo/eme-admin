@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eme Aromas · Panel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0a0a0a; --bg2:#111111; --bg3:#181818; --bg4:#222222;
+  --gold:#d4a843; --gold2:#f0c96a; --gold3:#8a6820;
+  --white:#f5f5f0; --gray:#888; --gray2:#555; --gray3:#333;
+  --green:#2ecc71; --red:#e74c3c; --blue:#3498db; --orange:#e67e22;
+  --text:#e8e4dc;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--gold3);border-radius:2px;}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;}
+.login-box{width:100%;max-width:380px;text-align:center;}
+.login-logo{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-family:'DM Mono',monospace;font-size:24px;color:var(--bg);}
+.login-title{font-size:28px;font-weight:800;color:var(--white);margin-bottom:4px;letter-spacing:-0.5px;}
+.login-sub{font-size:11px;color:var(--gray);letter-spacing:3px;text-transform:uppercase;margin-bottom:36px;}
+.login-inp{width:100%;padding:14px 16px;background:var(--bg3);border:1px solid var(--gray3);color:var(--white);font-family:'Syne',sans-serif;font-size:14px;outline:none;border-radius:4px;margin-bottom:12px;transition:border-color 0.3s;}
+.login-inp:focus{border-color:var(--gold);}
+.login-inp::placeholder{color:var(--gray2);}
+.login-btn{width:100%;padding:14px;background:var(--gold);color:var(--bg);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;border-radius:4px;transition:all 0.3s;}
+.login-btn:hover{background:var(--gold2);}
+.login-hint{font-size:10px;color:var(--gray2);margin-top:12px;}
+.login-err{font-size:11px;color:var(--red);margin-top:8px;display:none;}
+
+/* LAYOUT */
+.dashboard{display:none;min-height:100vh;}
+.dashboard.active{display:flex;}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--gray3);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100;transition:transform 0.3s;}
+.sidebar.collapsed{transform:translateX(-220px);}
+.sb-logo{padding:24px 20px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;gap:12px;}
+.sb-logo-circle{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--bg);font-weight:800;flex-shrink:0;}
+.sb-logo-text{font-size:15px;font-weight:700;color:var(--white);}
+.sb-logo-sub{font-size:8px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;}
+.sb-nav{flex:1;padding:16px 0;overflow-y:auto;}
+.sb-section{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gray2);padding:8px 20px 4px;}
+.sb-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:all 0.2s;border-left:3px solid transparent;font-size:13px;font-weight:500;color:var(--gray);}
+.sb-item:hover{background:var(--bg3);color:var(--white);}
+.sb-item.active{background:var(--bg3);color:var(--gold);border-left-color:var(--gold);}
+.sb-item-icon{font-size:16px;width:20px;text-align:center;}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--gray3);}
+.sb-user{font-size:11px;color:var(--gray);margin-bottom:8px;}
+.sb-logout{width:100%;padding:8px;background:transparent;border:1px solid var(--gray3);color:var(--gray);font-family:'Syne',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:all 0.2s;}
+.sb-logout:hover{border-color:var(--red);color:var(--red);}
+.main{flex:1;margin-left:220px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left 0.3s;}
+.main.expanded{margin-left:0;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--gray3);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.menu-toggle{background:none;border:none;color:var(--gray);font-size:20px;cursor:pointer;padding:4px;}
+.menu-toggle:hover{color:var(--white);}
+.topbar-title{font-size:18px;font-weight:700;color:var(--white);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.topbar-date{font-size:11px;color:var(--gray);font-family:'DM Mono',monospace;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.content{flex:1;padding:24px 28px;overflow-y:auto;}
+.page{display:none;}.page.active{display:block;}
+
+/* CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--bg2);border:1px solid var(--gray3);border-radius:6px;padding:20px;position:relative;overflow:hidden;transition:border-color 0.3s;}
+.stat-card:hover{border-color:var(--gold3);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
+.stat-card.green::before{background:linear-gradient(90deg,var(--green),transparent);}
+.stat-card.red::before{background:linear-gradient(90deg,var(--red),transparent);}
+.stat-card.blue::before{background:linear-gradient(90deg,var(--blue),transparent);}
+.stat-label{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gray);margin-bottom:10px;}
+.stat-value{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:var(--white);line-height:1;margin-bottom:6px;}
+.stat-sub{font-size:10px;color:var(--gray);display:flex;align-items:center;gap:4px;}
+.stat-sub.up{color:var(--green);}
+.stat-sub.down{color:var(--red);}
+.stat-icon{position:absolute;top:16px;right:16px;font-size:22px;opacity:0.3;}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+@media(max-width:900px){.charts-grid{grid-template-columns:1fr;}}
+.chart-card{background:var(--bg2);border:1px solid var(--gray3);border-radius:6px;padding:20px;}
+.chart-card.full{grid-column:1/-1;}
+.chart-title{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.chart-title span{color:var(--white);}
+.chart-wrap{position:relative;height:220px;}
+
+/* TABLES */
+.table-card{background:var(--bg2);border:1px solid var(--gray3);border-radius:6px;margin-bottom:20px;overflow:hidden;}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.table-title{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--white);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 16px;text-align:left;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray);border-bottom:1px solid var(--gray3);white-space:nowrap;}
+td{padding:12px 16px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.td-name{font-weight:600;color:var(--white);font-size:13px;}
+.td-brand{color:var(--gray);font-size:10px;}
+.td-price{font-family:'DM Mono',monospace;color:var(--gold);}
+.td-cost{font-family:'DM Mono',monospace;color:var(--gray);}
+.td-margin{font-family:'DM Mono',monospace;}
+.margin-good{color:var(--green);}
+.margin-ok{color:var(--orange);}
+.margin-bad{color:var(--red);}
+.td-stock{font-family:'DM Mono',monospace;}
+.stock-ok{color:var(--green);}
+.stock-low{color:var(--orange);}
+.stock-out{color:var(--red);}
+.badge{padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:inline-block;}
+.badge-pending{background:rgba(212,168,67,0.15);color:var(--gold);}
+.badge-paid{background:rgba(46,204,113,0.15);color:var(--green);}
+.badge-shipped{background:rgba(52,152,219,0.15);color:var(--blue);}
+.badge-active{background:rgba(46,204,113,0.1);color:var(--green);}
+.badge-inactive{background:rgba(231,76,60,0.1);color:var(--red);}
+
+/* INPUTS */
+.inp{width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--gray3);color:var(--white);font-family:'Syne',sans-serif;font-size:12px;outline:none;border-radius:3px;transition:border-color 0.3s;}
+.inp:focus{border-color:var(--gold);}
+.inp::placeholder{color:var(--gray2);}
+.sel{width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--gray3);color:var(--white);font-family:'Syne',sans-serif;font-size:12px;outline:none;border-radius:3px;appearance:none;cursor:pointer;}
+.sel:focus{border-color:var(--gold);}
+.sel option{background:var(--bg3);}
+
+/* BUTTONS */
+.btn{padding:8px 16px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;border-radius:3px;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-gold{background:var(--gold);color:var(--bg);}
+.btn-gold:hover{background:var(--gold2);}
+.btn-outline{background:transparent;border:1px solid var(--gray3);color:var(--gray);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-red{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid rgba(231,76,60,0.3);}
+.btn-red:hover{background:var(--red);color:var(--white);}
+.btn-green{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3);}
+.btn-green:hover{background:var(--green);color:var(--bg);}
+.btn-sm{padding:5px 10px;font-size:9px;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray);}
+.form-section{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--gray3);}
+
+/* SEARCH */
+.search-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.search-inp{flex:1;min-width:160px;padding:8px 12px;background:var(--bg3);border:1px solid var(--gray3);color:var(--white);font-family:'Syne',sans-serif;font-size:12px;outline:none;border-radius:3px;}
+.search-inp:focus{border-color:var(--gold);}
+.search-inp::placeholder{color:var(--gray2);}
+
+/* TOP LIST */
+.top-list{display:flex;flex-direction:column;gap:8px;}
+.top-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg3);border-radius:4px;transition:background 0.2s;}
+.top-item:hover{background:var(--bg4);}
+.top-rank{font-family:'DM Mono',monospace;font-size:11px;color:var(--gray);width:20px;text-align:center;flex-shrink:0;}
+.top-rank.gold{color:var(--gold);font-weight:700;}
+.top-img{width:36px;height:36px;object-fit:cover;border-radius:3px;background:var(--bg4);flex-shrink:0;}
+.top-info{flex:1;min-width:0;}
+.top-name{font-size:12px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-brand{font-size:9px;color:var(--gray);}
+.top-val{font-family:'DM Mono',monospace;font-size:12px;text-align:right;flex-shrink:0;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:500;opacity:0;pointer-events:none;transition:opacity 0.3s;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg2);border:1px solid var(--gray3);border-radius:8px;padding:28px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;transform:scale(0.95);transition:transform 0.3s;}
+.modal-bg.open .modal-box{transform:scale(1);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.modal-title{font-size:18px;font-weight:700;color:var(--white);}
+.modal-close{background:none;border:none;color:var(--gray);font-size:20px;cursor:pointer;transition:color 0.2s;}
+.modal-close:hover{color:var(--white);}
+
+/* TOGGLE */
+.toggle{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.toggle-track{width:36px;height:20px;background:var(--gray3);border-radius:10px;position:relative;transition:background 0.3s;}
+.toggle-track.on{background:var(--green);}
+.toggle-thumb{width:14px;height:14px;background:var(--white);border-radius:50%;position:absolute;top:3px;left:3px;transition:transform 0.3s;}
+.toggle-track.on .toggle-thumb{transform:translateX(16px);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--bg3);border:1px solid var(--gold3);color:var(--white);padding:12px 18px;font-size:12px;border-radius:4px;transform:translateY(80px);opacity:0;transition:all 0.3s;display:flex;align-items:center;gap:8px;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-icon{color:var(--gold);}
+
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-220px);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .content{padding:16px;}
+  .topbar{padding:12px 16px;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .form-grid{grid-template-columns:1fr;}
+}
+
+/* MISC */
+.divider{height:1px;background:var(--gray3);margin:20px 0;}
+.empty-state{text-align:center;padding:50px 20px;}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:0.3;}
+.empty-text{font-size:16px;color:var(--gray);}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--bg3);border:1px solid var(--gray3);border-radius:20px;font-size:9px;color:var(--gray);}
+.page-title{font-size:22px;font-weight:800;color:var(--white);margin-bottom:6px;letter-spacing:-0.5px;}
+.page-subtitle{font-size:12px;color:var(--gray);margin-bottom:24px;}
+.link-ext{color:var(--gold);text-decoration:none;font-size:11px;display:inline-flex;align-items:center;gap:4px;}
+.link-ext:hover{color:var(--gold2);}
+.overlay-sidebar{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">E</div>
+    <h1 class="login-title">Eme Aromas</h1>
+    <p class="login-sub">Panel de administración</p>
+    <input type="email" class="login-inp" id="loginEmail" placeholder="Email" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="password" class="login-inp" id="loginPw" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Ingresar →</button>
+    <p class="login-err" id="loginErr">Credenciales incorrectas</p>
+  </div>
+</div>
+
+<div class="overlay-sidebar" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-circle">E</div>
+      <div><div class="sb-logo-text">Eme Aromas</div><div class="sb-logo-sub">Admin</div></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Principal</div>
+      <div class="sb-item active" onclick="goTo('dashboard')"><span class="sb-item-icon">📊</span>Dashboard</div>
+      <div class="sb-item" onclick="goTo('pedidos')"><span class="sb-item-icon">📦</span>Pedidos</div>
+      <div class="sb-section">Catálogo</div>
+      <div class="sb-item" onclick="goTo('productos')"><span class="sb-item-icon">🧴</span>Productos</div>
+      <div class="sb-item" onclick="goTo('agregar')"><span class="sb-item-icon">➕</span>Agregar Producto</div>
+      <div class="sb-section">Finanzas</div>
+      <div class="sb-item" onclick="goTo('precios')"><span class="sb-item-icon">💰</span>Precios & Costos</div>
+      <div class="sb-item" onclick="goTo('estadisticas')"><span class="sb-item-icon">📈</span>Estadísticas</div>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">👤 Administrador</div>
+      <button class="sb-logout" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="mainArea">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-dot" title="Conectado a Firebase"></div>
+        <div class="topbar-date" id="topbarDate"></div>
+        <a href="https://eme-aromas.vercel.app" target="_blank" class="link-ext">Ver tienda ↗</a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Bienvenido, Administrador</div>
+        <div class="page-subtitle" id="dashDate">Cargando datos...</div>
+
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-label">Pedidos Totales</div><div class="stat-value" id="sTotalOrders">—</div><div class="stat-sub">Desde el inicio</div></div>
+          <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-label">Ingresos Totales</div><div class="stat-value" id="sTotalRevenue">—</div><div class="stat-sub up">Ventas confirmadas</div></div>
+          <div class="stat-card blue"><div class="stat-icon">🧴</div><div class="stat-label">Productos Activos</div><div class="stat-value" id="sTotalProducts">—</div><div class="stat-sub">En catálogo</div></div>
+          <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-label">Pedidos Pendientes</div><div class="stat-value" id="sPending">—</div><div class="stat-sub down">Por confirmar</div></div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title"><span>Ventas por mes</span></div>
+            <div class="chart-wrap"><canvas id="chartVentas"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title"><span>Pedidos por estado</span></div>
+            <div class="chart-wrap"><canvas id="chartEstados"></canvas></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="chart-card">
+            <div class="chart-title"><span>🏆 Más Vendidos</span></div>
+            <div class="top-list" id="topSelling"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title"><span>📉 Menos Vendidos</span></div>
+            <div class="top-list" id="leastSelling"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PEDIDOS ===== -->
+      <div class="page" id="page-pedidos">
+        <div class="page-title">Pedidos</div>
+        <div class="page-subtitle">Gestioná todos los pedidos recibidos</div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Lista de pedidos</div>
+            <div class="search-bar">
+              <input type="text" class="search-inp" id="orderSearch" placeholder="Buscar pedido..." oninput="filterOrders()">
+              <select class="sel" id="orderStatusFilter" onchange="filterOrders()" style="width:140px;">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="pagado">Pagado</option>
+                <option value="enviado">Enviado</option>
+              </select>
+              <button class="btn btn-outline" onclick="loadOrders()">↻ Actualizar</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="ordersTable">
+              <thead><tr>
+                <th>#</th><th>Fecha</th><th>Productos</th><th>Total</th><th>Estado</th><th>Acciones</th>
+              </tr></thead>
+              <tbody id="ordersTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PRODUCTOS ===== -->
+      <div class="page" id="page-productos">
+        <div class="page-title">Productos</div>
+        <div class="page-subtitle">Editá, activá o desactivá productos del catálogo</div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Catálogo completo</div>
+            <div class="search-bar">
+              <input type="text" class="search-inp" id="prodSearch" placeholder="Buscar producto..." oninput="filterProducts()">
+              <select class="sel" id="prodStatusFilter" onchange="filterProducts()" style="width:130px;">
+                <option value="">Todos</option>
+                <option value="active">Activos</option>
+                <option value="inactive">Inactivos</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Producto</th><th>Género</th><th>Familia</th><th>Stock</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+              </tr></thead>
+              <tbody id="productsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== AGREGAR ===== -->
+      <div class="page" id="page-agregar">
+        <div class="page-title">Agregar Producto</div>
+        <div class="page-subtitle">El producto aparecerá en el catálogo automáticamente</div>
+        <div class="table-card" style="padding:24px;">
+          <div class="form-section">Información básica</div>
+          <div class="form-grid" style="margin-bottom:14px;">
+            <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="inp" id="nN" placeholder="Ej: Fakhar Rose"></div>
+            <div class="form-group"><label class="form-label">Marca *</label><input type="text" class="inp" id="nB" placeholder="Ej: Lattafa"></div>
+            <div class="form-group"><label class="form-label">Género *</label><select class="sel" id="nGn"><option>Unisex</option><option>Mujer</option><option>Hombre</option></select></div>
+            <div class="form-group"><label class="form-label">Familia Olfativa *</label><select class="sel" id="nFm"><option>Floral</option><option>Oriental</option><option>Amaderada</option><option>Chipre</option><option>Gourmand</option><option>Aromática</option><option>Acuática</option><option>Cítrica</option></select></div>
+            <div class="form-group"><label class="form-label">Año de lanzamiento</label><input type="text" class="inp" id="nY" placeholder="2024"></div>
+            <div class="form-group"><label class="form-label">URL de imagen (Imgur)</label><input type="text" class="inp" id="nI" placeholder="https://i.imgur.com/XXXXX.jpg"></div>
+          </div>
+          <div class="form-section">Notas olfativas</div>
+          <div class="form-grid" style="margin-bottom:14px;">
+            <div class="form-group"><label class="form-label">Notas de Salida</label><input type="text" class="inp" id="nNS" placeholder="rosa, bergamota, jazmín"></div>
+            <div class="form-group"><label class="form-label">Notas de Corazón</label><input type="text" class="inp" id="nNC" placeholder="sándalo, vainilla"></div>
+            <div class="form-group"><label class="form-label">Notas de Fondo</label><input type="text" class="inp" id="nNF" placeholder="ámbar, almizcle"></div>
+          </div>
+          <div class="form-section">Precio & Stock</div>
+          <div class="form-grid" style="margin-bottom:20px;">
+            <div class="form-group"><label class="form-label">Precio de venta (ARS)</label><input type="number" class="inp" id="nP" placeholder="45000"></div>
+            <div class="form-group"><label class="form-label">Precio de costo (ARS)</label><input type="number" class="inp" id="nC" placeholder="25000"></div>
+            <div class="form-group"><label class="form-label">Stock inicial (unidades)</label><input type="number" class="inp" id="nSt" placeholder="10"></div>
+          </div>
+          <button class="btn btn-gold" onclick="addProduct()" style="padding:12px 28px;">➕ Agregar al Catálogo</button>
+          <div id="addOk" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:var(--green);font-size:12px;border-radius:3px;">✅ Producto agregado correctamente</div>
+        </div>
+      </div>
+
+      <!-- ===== PRECIOS & COSTOS ===== -->
+      <div class="page" id="page-precios">
+        <div class="page-title">Precios & Costos</div>
+        <div class="page-subtitle">Actualizá precios de venta y costos para calcular márgenes de ganancia</div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Gestión de precios</div>
+            <input type="text" class="search-inp" id="priceSearch" placeholder="Buscar producto..." oninput="filterPrices()" style="width:200px;">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Producto</th><th>Marca</th><th>Costo (ARS)</th><th>Precio Venta (ARS)</th><th>Margen</th><th></th>
+              </tr></thead>
+              <tbody id="pricesTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ESTADÍSTICAS ===== -->
+      <div class="page" id="page-estadisticas">
+        <div class="page-title">Estadísticas</div>
+        <div class="page-subtitle">Análisis de rendimiento del catálogo</div>
+
+        <div class="stats-grid">
+          <div class="stat-card green"><div class="stat-icon">💵</div><div class="stat-label">Ganancia Total</div><div class="stat-value" id="eGanancia">—</div><div class="stat-sub up">Venta menos costo</div></div>
+          <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-label">Margen Promedio</div><div class="stat-value" id="eMargen">—</div><div class="stat-sub">De los productos con costo</div></div>
+          <div class="stat-card blue"><div class="stat-icon">⭐</div><div class="stat-label">Producto Estrella</div><div class="stat-value" id="eEstrella" style="font-size:14px;line-height:1.3;margin-top:4px;">—</div><div class="stat-sub">Más vendido</div></div>
+          <div class="stat-card red"><div class="stat-icon">📦</div><div class="stat-label">Stock Bajo</div><div class="stat-value" id="eStockBajo">—</div><div class="stat-sub down">Productos con menos de 3 unidades</div></div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card full">
+            <div class="chart-title"><span>Ganancia por producto (Top 15)</span></div>
+            <div class="chart-wrap" style="height:300px;"><canvas id="chartGanancia"></canvas></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">Ranking de rentabilidad</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>#</th><th>Producto</th><th>Costo</th><th>Precio</th><th>Margen %</th><th>Unidades vendidas</th><th>Ganancia total</th>
+              </tr></thead>
+              <tbody id="rentabilidadTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div>
+
+<!-- MODAL EDITAR PRODUCTO -->
+<div class="modal-bg" id="editModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Editar Producto</div>
+      <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <input type="hidden" id="editId">
+    <div class="form-grid" style="margin-bottom:14px;">
+      <div class="form-group"><label class="form-label">Nombre</label><input type="text" class="inp" id="editName"></div>
+      <div class="form-group"><label class="form-label">Marca</label><input type="text" class="inp" id="editBrand"></div>
+      <div class="form-group"><label class="form-label">Género</label><select class="sel" id="editGender"><option>Unisex</option><option>Mujer</option><option>Hombre</option></select></div>
+      <div class="form-group"><label class="form-label">Familia</label><select class="sel" id="editFamily"><option>Floral</option><option>Oriental</option><option>Amaderada</option><option>Chipre</option><option>Gourmand</option><option>Aromática</option><option>Acuática</option><option>Cítrica</option></select></div>
+      <div class="form-group"><label class="form-label">Año</label><input type="text" class="inp" id="editYear"></div>
+      <div class="form-group"><label class="form-label">URL Imagen</label><input type="text" class="inp" id="editImg"></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:14px;">
+      <div class="form-group"><label class="form-label">Notas de Salida</label><input type="text" class="inp" id="editS" placeholder="Separadas por coma"></div>
+      <div class="form-group"><label class="form-label">Notas de Corazón</label><input type="text" class="inp" id="editC" placeholder="Separadas por coma"></div>
+      <div class="form-group"><label class="form-label">Notas de Fondo</label><input type="text" class="inp" id="editF" placeholder="Separadas por coma"></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:20px;">
+      <div class="form-group"><label class="form-label">Stock (unidades)</label><input type="number" class="inp" id="editStock"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('editModal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveEdit()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR ESTADO PEDIDO -->
+<div class="modal-bg" id="orderModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Pedido <span id="orderModalId"></span></div>
+      <button class="modal-close" onclick="closeModal('orderModal')">✕</button>
+    </div>
+    <div id="orderModalItems" style="margin-bottom:16px;font-size:12px;color:var(--gray);line-height:1.8;"></div>
+    <div class="divider"></div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">Cambiar estado</label>
+      <select class="sel" id="orderModalStatus">
+        <option value="pendiente">⏳ Pendiente</option>
+        <option value="pagado">✅ Pagado</option>
+        <option value="enviado">🚚 Enviado</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('orderModal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveOrderStatus()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="toast-icon">✓</span><span id="toastMsg"></span></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyCadIb_MCEum2Fe1wiEcXr0lIhyjoTN2-U",
+  authDomain:"eme-aromas.firebaseapp.com",
+  projectId:"eme-aromas",
+  storageBucket:"eme-aromas.firebasestorage.app",
+  messagingSenderId:"529084170206",
+  appId:"1:529084170206:web:c1a59799951c641aae674f"
+});
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').classList.add('active');
+    initData();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('dashboard').classList.remove('active');
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPw').value = '';
+  }
+});
+
+// ===== BASE PRODUCTS =====
+const BASE = [
+  {id:"1",name:"Fakhar Rose",brand:"Lattafa",gender:"Mujer",family:"Floral",year:"2022",img:"https://i.imgur.com/RJaHXaW.jpg"},
+  {id:"2",name:"Al Qiam Silver",brand:"Lattafa Pride",gender:"Unisex",family:"Amaderada",year:"2022",img:"https://i.imgur.com/aZ457CG.jpg"},
+  {id:"3",name:"Emeer",brand:"Lattafa",gender:"Unisex",family:"Amaderada",year:"2024",img:"https://i.imgur.com/KMSET2A.jpg"},
+  {id:"4",name:"Afiona Ideal",brand:"Afiona",gender:"Mujer",family:"Floral",year:"",img:"https://i.imgur.com/mxZh4WX.jpg"},
+  {id:"5",name:"Her Confession",brand:"Lattafa",gender:"Mujer",family:"Floral",year:"2024",img:"https://i.imgur.com/BwpZJUa.jpg"},
+  {id:"6",name:"Anfar Rosella",brand:"Florenca di Anfar",gender:"Mujer",family:"Floral",year:"2024",img:"https://i.imgur.com/VirVuuG.jpg"},
+  {id:"7",name:"Asad Black",brand:"Lattafa",gender:"Hombre",family:"Oriental",year:"2021",img:"https://i.imgur.com/KVNryBj.jpg"},
+  {id:"8",name:"Atheeri",brand:"Lattafa",gender:"Mujer",family:"Oriental",year:"2025",img:"https://i.imgur.com/1AZlqx0.jpg"},
+  {id:"9",name:"His Confession",brand:"Lattafa",gender:"Hombre",family:"Amaderada",year:"2024",img:"https://i.imgur.com/HTHfaS4.jpg"},
+  {id:"10",name:"Al Haramain Miracle Dubai",brand:"Al Haramain",gender:"Unisex",family:"Floral",year:"2024",img:"https://i.imgur.com/0904shN.jpg"},
+  {id:"11",name:"Confidential Platinum",brand:"Lattafa",gender:"Hombre",family:"Amaderada",year:"2022",img:"https://i.imgur.com/wdcWIjs.jpg"},
+  {id:"12",name:"Eclaire",brand:"Lattafa",gender:"Mujer",family:"Gourmand",year:"2024",img:"https://i.imgur.com/uMcO0Kj.jpg"},
+  {id:"13",name:"Amethyst",brand:"Lattafa",gender:"Unisex",family:"Oriental",year:"2021",img:"https://i.imgur.com/jotl8rp.jpg"},
+  {id:"14",name:"Club de Nuite Iconic",brand:"Armaf",gender:"Hombre",family:"Amaderada",year:"2022",img:"https://i.imgur.com/7WiLI2s.jpg"},
+  {id:"15",name:"Ana Abhiyen Coral",brand:"Lattafa",gender:"Unisex",family:"Floral",year:"2025",img:"https://i.imgur.com/H5xpChs.jpg"},
+  {id:"16",name:"Club de Nuite Lionheart",brand:"Armaf",gender:"Hombre",family:"Amaderada",year:"2022",img:"https://i.imgur.com/gDdlh8Y.jpg"},
+  {id:"17",name:"Emaan",brand:"Lattafa",gender:"Mujer",family:"Chipre",year:"2022",img:"https://i.imgur.com/ncMt3qo.jpg"},
+  {id:"18",name:"Eter Arabian Sky",brand:"Armaf",gender:"Unisex",family:"Amaderada",year:"2024",img:"https://i.imgur.com/v8K1rY8.jpg"},
+  {id:"19",name:"Hawas For Him",brand:"Rasasi",gender:"Hombre",family:"Acuática",year:"2015",img:"https://i.imgur.com/kiPrxOz.jpg"},
+  {id:"20",name:"Odissey Tyrant",brand:"Armaf",gender:"Hombre",family:"Amaderada",year:"2023",img:"https://i.imgur.com/mszXLao.jpg"},
+  {id:"21",name:"Atlantis de Asdaaf",brand:"Asdaaf",gender:"Unisex",family:"Acuática",year:"2023",img:"https://i.imgur.com/JY65uyv.jpg"},
+  {id:"22",name:"Al Quiam Gold",brand:"Lattafa Pride",gender:"Unisex",family:"Amaderada",year:"2022",img:"https://i.imgur.com/2uBuWqG.jpg"},
+  {id:"23",name:"Tamima",brand:"Lattafa",gender:"Unisex",family:"Amaderada",year:"2024",img:"https://i.imgur.com/icmYSPz.jpg"},
+  {id:"24",name:"Club de Nuite Untold",brand:"Armaf",gender:"Unisex",family:"Oriental",year:"2022",img:"https://i.imgur.com/1y8kYnu.jpg"},
+  {id:"25",name:"Bade'e Al Oud For Glory Black",brand:"Lattafa",gender:"Unisex",family:"Amaderada",year:"2020",img:"https://i.imgur.com/v9acAzW.jpg"},
+  {id:"26",name:"Musuman White Intense",brand:"Lattafa",gender:"Unisex",family:"Oriental",year:"2023",img:"https://i.imgur.com/1igNftA.jpg"},
+  {id:"27",name:"Al Haramain Amber Oud",brand:"Al Haramain",gender:"Unisex",family:"Oriental",year:"2024",img:"https://i.imgur.com/Oxwv2T2.jpg"},
+  {id:"28",name:"9 AM Pink",brand:"Afnan",gender:"Mujer",family:"Oriental",year:"2022",img:"https://i.imgur.com/VXwY4oT.jpg"},
+  {id:"29",name:"Mahir Black Edition",brand:"Lattafa",gender:"Unisex",family:"Oriental",year:"2019",img:"https://i.imgur.com/gKn23EK.jpg"},
+  {id:"30",name:"Philos Pura",brand:"Lattafa",gender:"Unisex",family:"Aromática",year:"2022",img:"https://i.imgur.com/vHB7aXt.jpg"},
+  {id:"31",name:"Pachuli Nro 7",brand:"Emire",gender:"Unisex",family:"Chipre",year:"",img:"https://i.imgur.com/KJlXMPB.jpg"},
+  {id:"32",name:"9 AM Dive (Set)",brand:"Afnan",gender:"Unisex",family:"Acuática",year:"2022",img:"https://i.imgur.com/17Arjeh.jpg"},
+  {id:"33",name:"Eternal Oud",brand:"Lattafa Pride",gender:"Unisex",family:"Oriental",year:"2022",img:"https://i.imgur.com/guEXG1d.jpg"},
+  {id:"34",name:"Emeer (Extrait)",brand:"Lattafa",gender:"Unisex",family:"Amaderada",year:"2024",img:"https://i.imgur.com/uskslYo.jpg"},
+  {id:"35",name:"Her Confession (Box)",brand:"Lattafa",gender:"Mujer",family:"Floral",year:"2024",img:"https://i.imgur.com/P40FtbF.jpg"},
+  {id:"36",name:"Miss Armaf Attitude",brand:"Armaf",gender:"Mujer",family:"Floral",year:"2023",img:"https://i.imgur.com/LhMp4Ay.jpg"},
+  {id:"37",name:"His Confession (Box)",brand:"Lattafa",gender:"Hombre",family:"Amaderada",year:"2024",img:"https://i.imgur.com/cyJBvTR.jpg"},
+  {id:"38",name:"Odyssey Aoud",brand:"Lattafa",gender:"Hombre",family:"Amaderada",year:"2023",img:"https://i.imgur.com/bgX4n9y.jpg"},
+  {id:"39",name:"Baroque Rouge",brand:"Maison Alhambra",gender:"Unisex",family:"Oriental",year:"2021",img:"https://i.imgur.com/TulOcZp.jpg"},
+  {id:"40",name:"Tharwah Gold",brand:"Lattafa Pride",gender:"Mujer",family:"Oriental",year:"2022",img:"https://i.imgur.com/doX5id6.jpg"},
+  {id:"41",name:"Mayar Cherry Intense",brand:"Lattafa",gender:"Unisex",family:"Oriental",year:"2024",img:"https://i.imgur.com/c0wuFlU.jpg"},
+  {id:"42",name:"Fakhar Gold",brand:"Lattafa",gender:"Hombre",family:"Oriental",year:"2023",img:"https://i.imgur.com/P5wGJf0.jpg"},
+  {id:"43",name:"Petra",brand:"Lattafa",gender:"Unisex",family:"Gourmand",year:"2025",img:"https://i.imgur.com/8LcWpAy.jpg"},
+  {id:"44",name:"Noble Blush",brand:"Lattafa",gender:"Mujer",family:"Gourmand",year:"2024",img:"https://i.imgur.com/4TryNMC.jpg"},
+  {id:"45",name:"Veneno",brand:"French Avenue",gender:"Unisex",family:"Aromática",year:"2025",img:"https://i.imgur.com/jcMzPBY.jpg"},
+  {id:"46",name:"Pink Velvet",brand:"Maison Alhambra",gender:"Mujer",family:"Chipre",year:"2022",img:"https://i.imgur.com/MMziVNu.jpg"},
+  {id:"47",name:"Tiramisu Coco",brand:"Zimaya",gender:"Unisex",family:"Gourmand",year:"2024",img:"https://i.imgur.com/An8GqUs.jpg"},
+  {id:"48",name:"Q'aa Ed",brand:"Lattafa",gender:"Unisex",family:"Oriental",year:"2018",img:"https://i.imgur.com/0sSLYj5.jpg"},
+  {id:"49",name:"Opulent Blue Oud",brand:"Lattafa",gender:"Unisex",family:"Amaderada",year:"2018",img:"https://i.imgur.com/p2wBQir.jpg"},
+  {id:"50",name:"Andaleeb",brand:"Asdaaf",gender:"Unisex",family:"Chipre",year:"",img:"https://i.imgur.com/MoWieSY.jpg"},
+  {id:"51",name:"Minya",brand:"Paris Corner",gender:"Unisex",family:"Oriental",year:"2024",img:"https://i.imgur.com/E7NFJP8.jpg"},
+];
+
+// STATE
+let products = [...BASE];
+let prices = {}, costs = {}, stocks = {}, statuses = {};
+let orders = [];
+let chartVentas, chartEstados, chartGanancia;
+let currentOrderId = null;
+
+// DATE
+const now = new Date();
+document.getElementById('topbarDate').textContent = now.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+document.getElementById('dashDate').textContent = `Resumen al ${now.toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})}`;
+
+// ===== LOGIN =====
+window.doLogin = async () => {
+  const email = document.getElementById('loginEmail').value;
+  const pw = document.getElementById('loginPw').value;
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginPw').style.borderColor = 'var(--red)';
+    setTimeout(() => {
+      document.getElementById('loginErr').style.display = 'none';
+      document.getElementById('loginPw').style.borderColor = 'var(--gray3)';
+    }, 2500);
+  }
+};
+window.doLogout = async () => {
+  await signOut(auth);
+};
+
+// ===== INIT =====
+async function initData() {
+  try {
+    // Load prices
+    const ps = await getDocs(collection(db, 'prices'));
+    ps.forEach(d => { prices[d.id] = d.data().price; });
+    // Load costs
+    const cs = await getDocs(collection(db, 'costs'));
+    cs.forEach(d => { costs[d.id] = d.data().cost; });
+    // Load stocks
+    const ss = await getDocs(collection(db, 'stocks'));
+    ss.forEach(d => { stocks[d.id] = d.data().stock; });
+    // Load statuses (active/inactive)
+    const st = await getDocs(collection(db, 'statuses'));
+    st.forEach(d => { statuses[d.id] = d.data().active !== false; });
+    // Load extra products
+    const ex = await getDocs(collection(db, 'products'));
+    ex.forEach(d => { const dat = d.data(); if(!products.find(p => p.id === d.id)) products.push({...dat, id: d.id}); });
+    // Load orders
+    await loadOrders();
+  } catch(e) { console.log('Init error:', e); }
+  renderDashboard();
+  renderProducts();
+  renderPrices();
+  renderStats();
+}
+
+// ===== NAV =====
+window.goTo = (page) => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.currentTarget.classList.add('active');
+  const titles = {dashboard:'Dashboard',pedidos:'Pedidos',productos:'Productos',agregar:'Agregar Producto',precios:'Precios & Costos',estadisticas:'Estadísticas'};
+  document.getElementById('topbarTitle').textContent = titles[page] || page;
+  if(page === 'pedidos') loadOrders();
+  if(window.innerWidth < 768) toggleSidebar();
+};
+
+window.toggleSidebar = () => {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  if(sb.classList.contains('open')) { ov.style.display = 'block'; } else { ov.style.display = 'none'; }
+};
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const activeProducts = products.filter(p => statuses[p.id] !== false).length;
+  const pending = orders.filter(o => o.status === 'pendiente').length;
+  const totalRevenue = orders.filter(o => o.status !== 'pendiente').reduce((s, o) => s + (o.total || 0), 0);
+
+  document.getElementById('sTotalOrders').textContent = orders.length;
+  document.getElementById('sTotalRevenue').textContent = '$ ' + totalRevenue.toLocaleString('es-AR');
+  document.getElementById('sTotalProducts').textContent = activeProducts;
+  document.getElementById('sPending').textContent = pending;
+
+  // Sales by month chart
+  const monthlySales = {};
+  orders.forEach(o => {
+    if(!o.createdAt) return;
+    const d = new Date(o.createdAt.seconds * 1000);
+    const key = d.toLocaleDateString('es-AR', {month:'short', year:'2-digit'});
+    monthlySales[key] = (monthlySales[key] || 0) + (o.total || 0);
+  });
+  const months = Object.keys(monthlySales).slice(-6);
+  const salesData = months.map(m => monthlySales[m]);
+
+  if(chartVentas) chartVentas.destroy();
+  const ctx1 = document.getElementById('chartVentas').getContext('2d');
+  chartVentas = new Chart(ctx1, {
+    type: 'bar',
+    data: { labels: months.length ? months : ['Sin datos'], datasets: [{ label: 'Ventas $', data: salesData.length ? salesData : [0], backgroundColor: 'rgba(212,168,67,0.3)', borderColor: '#d4a843', borderWidth: 2, borderRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#888', font: { size: 10 } }, grid: { color: '#222' } }, y: { ticks: { color: '#888', font: { size: 10 }, callback: v => '$'+v.toLocaleString('es-AR') }, grid: { color: '#222' } } } }
+  });
+
+  // Orders by status
+  const statusCounts = { pendiente: 0, pagado: 0, enviado: 0 };
+  orders.forEach(o => { statusCounts[o.status || 'pendiente']++; });
+  if(chartEstados) chartEstados.destroy();
+  const ctx2 = document.getElementById('chartEstados').getContext('2d');
+  chartEstados = new Chart(ctx2, {
+    type: 'doughnut',
+    data: { labels: ['Pendiente', 'Pagado', 'Enviado'], datasets: [{ data: [statusCounts.pendiente, statusCounts.pagado, statusCounts.enviado], backgroundColor: ['rgba(212,168,67,0.7)', 'rgba(46,204,113,0.7)', 'rgba(52,152,219,0.7)'], borderColor: '#111', borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#888', font: { size: 11 } } } } }
+  });
+
+  // Top/least selling from orders
+  const salesCount = {};
+  orders.forEach(o => { (o.items || []).forEach(it => { salesCount[it.name] = (salesCount[it.name] || 0) + (it.qty || 1); }); });
+  const sorted = Object.entries(salesCount).sort((a, b) => b[1] - a[1]);
+  const top5 = sorted.slice(0, 5);
+  const least5 = sorted.slice(-5).reverse();
+
+  const topDiv = document.getElementById('topSelling');
+  const leastDiv = document.getElementById('leastSelling');
+  topDiv.innerHTML = top5.length ? top5.map(([name, qty], i) => {
+    const p = products.find(x => x.name === name);
+    return `<div class="top-item"><span class="top-rank ${i===0?'gold':(i+1)}">${i+1}</span><img class="top-img" src="${p?.img||''}" onerror="this.style.opacity='0.2'"><div class="top-info"><div class="top-name">${name}</div><div class="top-brand">${p?.brand||''}</div></div><div class="top-val" style="color:var(--gold)">${qty} uds</div></div>`;
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--gray);font-size:12px;">Sin ventas registradas aún</div>';
+
+  leastDiv.innerHTML = least5.length ? least5.map(([name, qty], i) => {
+    const p = products.find(x => x.name === name);
+    return `<div class="top-item"><span class="top-rank">${i+1}</span><img class="top-img" src="${p?.img||''}" onerror="this.style.opacity='0.2'"><div class="top-info"><div class="top-name">${name}</div><div class="top-brand">${p?.brand||''}</div></div><div class="top-val" style="color:var(--gray)">${qty} uds</div></div>`;
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--gray);font-size:12px;">Sin ventas registradas aún</div>';
+}
+
+// ===== ORDERS =====
+window.loadOrders = async () => {
+  try {
+    const snap = await getDocs(collection(db, 'orders'));
+    orders = [];
+    snap.forEach(d => orders.push({id: d.id, ...d.data()}));
+    orders.sort((a, b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+  } catch(e) { console.log('Orders error:', e); }
+  renderOrders();
+};
+
+function renderOrders(list = orders) {
+  const tbody = document.getElementById('ordersTbody');
+  if(!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--gray);">No hay pedidos todavía</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(o => {
+    const date = o.createdAt ? new Date(o.createdAt.seconds*1000).toLocaleDateString('es-AR') : '—';
+    const items = (o.items||[]).map(i => `${i.qty}x ${i.name}`).join(', ');
+    const total = o.total > 0 ? '$ '+Number(o.total).toLocaleString('es-AR') : 'A confirmar';
+    const st = o.status || 'pendiente';
+    return `<tr>
+      <td><span class="td-name">#${o.id.slice(-6).toUpperCase()}</span></td>
+      <td style="font-size:11px;color:var(--gray)">${date}</td>
+      <td style="font-size:11px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${items}</td>
+      <td class="td-price">${total}</td>
+      <td><span class="badge badge-${st}">${st}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openOrderModal('${o.id}')">Gestionar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+window.filterOrders = () => {
+  const s = document.getElementById('orderSearch').value.toLowerCase();
+  const st = document.getElementById('orderStatusFilter').value;
+  renderOrders(orders.filter(o => {
+    const items = (o.items||[]).map(i=>i.name).join(' ').toLowerCase();
+    if(s && !o.id.toLowerCase().includes(s) && !items.includes(s)) return false;
+    if(st && (o.status||'pendiente') !== st) return false;
+    return true;
+  }));
+};
+
+window.openOrderModal = (id) => {
+  const o = orders.find(x => x.id === id);
+  if(!o) return;
+  currentOrderId = id;
+  document.getElementById('orderModalId').textContent = '#' + id.slice(-6).toUpperCase();
+  document.getElementById('orderModalItems').innerHTML = (o.items||[]).map(i => `• ${i.qty}x <strong style="color:var(--white)">${i.name}</strong> — $${(i.subtotal||0).toLocaleString('es-AR')}`).join('<br>') + `<br><br><strong style="color:var(--gold)">Total: $${(o.total||0).toLocaleString('es-AR')}</strong>`;
+  document.getElementById('orderModalStatus').value = o.status || 'pendiente';
+  document.getElementById('orderModal').classList.add('open');
+};
+
+window.saveOrderStatus = async () => {
+  const newStatus = document.getElementById('orderModalStatus').value;
+  try {
+    await updateDoc(doc(db, 'orders', currentOrderId), { status: newStatus });
+    const o = orders.find(x => x.id === currentOrderId);
+    if(o) o.status = newStatus;
+    renderOrders();
+    renderDashboard();
+    showToast('Estado actualizado ✓');
+  } catch(e) { showToast('Error al guardar'); }
+  closeModal('orderModal');
+};
+
+// ===== PRODUCTS =====
+function renderProducts(list = null) {
+  const data = list || products;
+  const tbody = document.getElementById('productsTbody');
+  tbody.innerHTML = data.map(p => {
+    const isActive = statuses[p.id] !== false;
+    const stock = stocks[p.id] ?? '—';
+    const stockClass = stock === '—' ? '' : stock <= 0 ? 'stock-out' : stock <= 3 ? 'stock-low' : 'stock-ok';
+    return `<tr>
+      <td><div class="td-name">${p.name}</div><div class="td-brand">${p.brand}</div></td>
+      <td style="font-size:11px;color:var(--gray)">${p.gender}</td>
+      <td style="font-size:11px;color:var(--gray)">${p.family}</td>
+      <td class="td-stock ${stockClass}">${stock}</td>
+      <td class="td-price">${prices[p.id] ? '$ '+Number(prices[p.id]).toLocaleString('es-AR') : '—'}</td>
+      <td><span class="badge ${isActive?'badge-active':'badge-inactive'}">${isActive?'Activo':'Inactivo'}</span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="openEditModal('${p.id}')">✏️ Editar</button>
+        <button class="btn ${isActive?'btn-red':'btn-green'} btn-sm" onclick="toggleStatus('${p.id}')">${isActive?'Desactivar':'Activar'}</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.filterProducts = () => {
+  const s = document.getElementById('prodSearch').value.toLowerCase();
+  const st = document.getElementById('prodStatusFilter').value;
+  renderProducts(products.filter(p => {
+    if(s && !p.name.toLowerCase().includes(s) && !p.brand.toLowerCase().includes(s)) return false;
+    const isActive = statuses[p.id] !== false;
+    if(st === 'active' && !isActive) return false;
+    if(st === 'inactive' && isActive) return false;
+    return true;
+  }));
+};
+
+window.toggleStatus = async (id) => {
+  const current = statuses[id] !== false;
+  statuses[id] = !current;
+  try { await setDoc(doc(db,'statuses',id), {active: !current}); } catch(e) {}
+  renderProducts();
+  showToast((!current ? 'Producto activado' : 'Producto desactivado') + ' ✓');
+};
+
+window.openEditModal = (id) => {
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById('editId').value = id;
+  document.getElementById('editName').value = p.name || '';
+  document.getElementById('editBrand').value = p.brand || '';
+  document.getElementById('editYear').value = p.year || '';
+  document.getElementById('editImg').value = p.img || '';
+  document.getElementById('editGender').value = p.gender || 'Unisex';
+  document.getElementById('editFamily').value = p.family || 'Floral';
+  document.getElementById('editS').value = (p.S||[]).join(', ');
+  document.getElementById('editC').value = (p.C||[]).join(', ');
+  document.getElementById('editF').value = (p.F||[]).join(', ');
+  document.getElementById('editStock').value = stocks[id] || '';
+  document.getElementById('editModal').classList.add('open');
+};
+
+window.saveEdit = async () => {
+  const id = document.getElementById('editId').value;
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+  p.name = document.getElementById('editName').value;
+  p.brand = document.getElementById('editBrand').value;
+  p.year = document.getElementById('editYear').value;
+  p.img = document.getElementById('editImg').value;
+  p.gender = document.getElementById('editGender').value;
+  p.family = document.getElementById('editFamily').value;
+  p.S = document.getElementById('editS').value.split(',').map(s=>s.trim()).filter(Boolean);
+  p.C = document.getElementById('editC').value.split(',').map(s=>s.trim()).filter(Boolean);
+  p.F = document.getElementById('editF').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const stockVal = parseInt(document.getElementById('editStock').value);
+  if(!isNaN(stockVal)) stocks[id] = stockVal;
+  try {
+    await setDoc(doc(db,'products',id), p);
+    if(!isNaN(stockVal)) await setDoc(doc(db,'stocks',id), {stock: stockVal});
+  } catch(e) {}
+  renderProducts();
+  renderStats();
+  showToast('Producto actualizado ✓');
+  closeModal('editModal');
+};
+
+// ===== PRICES =====
+function renderPrices(list = null) {
+  const data = list || products;
+  const tbody = document.getElementById('pricesTbody');
+  tbody.innerHTML = data.map(p => {
+    const price = prices[p.id] || 0;
+    const cost = costs[p.id] || 0;
+    const margin = price && cost ? Math.round(((price - cost) / price) * 100) : null;
+    const mClass = margin === null ? '' : margin >= 40 ? 'margin-good' : margin >= 20 ? 'margin-ok' : 'margin-bad';
+    return `<tr>
+      <td><div class="td-name">${p.name}</div></td>
+      <td style="font-size:11px;color:var(--gray)">${p.brand}</td>
+      <td><input type="number" class="inp" style="width:130px;" value="${cost||''}" placeholder="$ costo" id="cost_${p.id}" onchange="saveCost('${p.id}')"></td>
+      <td><input type="number" class="inp" style="width:130px;" value="${price||''}" placeholder="$ venta" id="price_${p.id}" onchange="savePrice('${p.id}')"></td>
+      <td class="td-margin ${mClass}">${margin !== null ? margin+'%' : '—'}</td>
+      <td><span id="saved_${p.id}" style="font-size:9px;color:var(--green);display:none;">✓ Guardado</span></td>
+    </tr>`;
+  }).join('');
+}
+
+window.savePrice = async (id) => {
+  const v = parseFloat(document.getElementById('price_'+id).value);
+  if(isNaN(v)||v<=0) return;
+  prices[id] = v;
+  try { await setDoc(doc(db,'prices',id), {price:v}); } catch(e) {}
+  const s = document.getElementById('saved_'+id);
+  s.style.display='inline';setTimeout(()=>s.style.display='none',2000);
+  renderPrices(); renderStats();
+};
+
+window.saveCost = async (id) => {
+  const v = parseFloat(document.getElementById('cost_'+id).value);
+  if(isNaN(v)||v<=0) return;
+  costs[id] = v;
+  try { await setDoc(doc(db,'costs',id), {cost:v}); } catch(e) {}
+  const s = document.getElementById('saved_'+id);
+  s.style.display='inline';setTimeout(()=>s.style.display='none',2000);
+  renderPrices(); renderStats();
+};
+
+window.filterPrices = () => {
+  const s = document.getElementById('priceSearch').value.toLowerCase();
+  renderPrices(products.filter(p => p.name.toLowerCase().includes(s) || p.brand.toLowerCase().includes(s)));
+};
+
+// ===== STATS =====
+function renderStats() {
+  // Sales count per product
+  const salesCount = {};
+  orders.forEach(o => { (o.items||[]).forEach(it => { salesCount[it.name] = (salesCount[it.name] || 0) + (it.qty||1); }); });
+
+  // Ganancia total
+  let totalGanancia = 0;
+  let margins = [];
+  products.forEach(p => {
+    const price = prices[p.id]||0, cost = costs[p.id]||0;
+    const qty = salesCount[p.name]||0;
+    if(price && cost && qty) totalGanancia += (price - cost) * qty;
+    if(price && cost) margins.push(((price - cost) / price) * 100);
+  });
+  const avgMargin = margins.length ? Math.round(margins.reduce((s,x)=>s+x,0)/margins.length) : 0;
+  const stockBajo = products.filter(p => (stocks[p.id]||99) <= 3).length;
+  const sorted = Object.entries(salesCount).sort((a,b)=>b[1]-a[1]);
+  const estrella = sorted[0]?.[0] || '—';
+
+  document.getElementById('eGanancia').textContent = '$ '+totalGanancia.toLocaleString('es-AR');
+  document.getElementById('eMargen').textContent = avgMargin + '%';
+  document.getElementById('eEstrella').textContent = estrella;
+  document.getElementById('eStockBajo').textContent = stockBajo;
+
+  // Ganancia por producto chart
+  const prodGain = products.map(p => {
+    const price = prices[p.id]||0, cost = costs[p.id]||0;
+    const qty = salesCount[p.name]||0;
+    return {name: p.name.length > 18 ? p.name.slice(0,18)+'…' : p.name, gain: price && cost ? (price-cost)*qty : 0};
+  }).filter(x => x.gain > 0).sort((a,b)=>b.gain-a.gain).slice(0,15);
+
+  if(chartGanancia) chartGanancia.destroy();
+  const ctx3 = document.getElementById('chartGanancia').getContext('2d');
+  chartGanancia = new Chart(ctx3, {
+    type: 'bar',
+    data: { labels: prodGain.map(x=>x.name), datasets: [{ label: 'Ganancia $', data: prodGain.map(x=>x.gain), backgroundColor: prodGain.map((_,i)=>`rgba(212,168,67,${0.9-i*0.05})`), borderRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { color:'#888', callback: v=>'$'+v.toLocaleString('es-AR') }, grid:{color:'#222'} }, y: { ticks: { color:'#ccc', font:{size:10} }, grid:{color:'#1a1a1a'} } } }
+  });
+
+  // Rentabilidad table
+  const tbody = document.getElementById('rentabilidadTbody');
+  const ranked = products.map(p => {
+    const price = prices[p.id]||0, cost = costs[p.id]||0;
+    const qty = salesCount[p.name]||0;
+    const margin = price && cost ? Math.round(((price-cost)/price)*100) : null;
+    const gain = price && cost ? (price-cost)*qty : 0;
+    return {p, price, cost, qty, margin, gain};
+  }).filter(x => x.price||x.cost).sort((a,b)=>b.gain-a.gain);
+
+  tbody.innerHTML = ranked.map((r, i) => {
+    const mClass = r.margin===null?'':r.margin>=40?'margin-good':r.margin>=20?'margin-ok':'margin-bad';
+    return `<tr>
+      <td style="color:var(--gray);font-size:11px;">${i+1}</td>
+      <td><div class="td-name">${r.p.name}</div><div class="td-brand">${r.p.brand}</div></td>
+      <td class="td-cost">${r.cost?'$ '+r.cost.toLocaleString('es-AR'):'—'}</td>
+      <td class="td-price">${r.price?'$ '+r.price.toLocaleString('es-AR'):'—'}</td>
+      <td class="td-margin ${mClass}">${r.margin!==null?r.margin+'%':'—'}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text)">${r.qty}</td>
+      <td class="td-price">${r.gain>0?'$ '+r.gain.toLocaleString('es-AR'):'—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--gray);">Cargá costos y precios para ver estadísticas</td></tr>';
+}
+
+// ===== ADD PRODUCT =====
+window.addProduct = async () => {
+  const n = document.getElementById('nN').value.trim();
+  const b = document.getElementById('nB').value.trim();
+  if(!n||!b){showToast('Completá nombre y marca');return;}
+  const nid = 'c_'+Date.now();
+  const np = {id:nid,name:n,brand:b,year:document.getElementById('nY').value.trim(),gender:document.getElementById('nGn').value,family:document.getElementById('nFm').value,img:document.getElementById('nI').value.trim(),S:document.getElementById('nNS').value.split(',').map(s=>s.trim()).filter(Boolean),C:document.getElementById('nNC').value.split(',').map(s=>s.trim()).filter(Boolean),F:document.getElementById('nNF').value.split(',').map(s=>s.trim()).filter(Boolean)};
+  const pv = parseFloat(document.getElementById('nP').value);
+  const cv = parseFloat(document.getElementById('nC').value);
+  const sv = parseInt(document.getElementById('nSt').value);
+  try {
+    await setDoc(doc(db,'products',nid), np);
+    if(!isNaN(pv)&&pv>0){await setDoc(doc(db,'prices',nid),{price:pv});prices[nid]=pv;}
+    if(!isNaN(cv)&&cv>0){await setDoc(doc(db,'costs',nid),{cost:cv});costs[nid]=cv;}
+    if(!isNaN(sv)&&sv>=0){await setDoc(doc(db,'stocks',nid),{stock:sv});stocks[nid]=sv;}
+  } catch(e){console.log(e);}
+  products.push(np);
+  renderProducts(); renderPrices(); renderStats(); renderDashboard();
+  ['nN','nB','nY','nI','nNS','nNC','nNF','nP','nC','nSt'].forEach(i=>document.getElementById(i).value='');
+  const ok=document.getElementById('addOk');ok.style.display='block';
+  setTimeout(()=>ok.style.display='none',3000);
+  showToast(`${n} agregado ✓`);
+};
+
+// ===== UTILS =====
+window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); };
+window.showToast = (msg) => {
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+};
+
+// Date
+setInterval(()=>{
+  document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+},60000);
+</script>
+</body>
+</html>
